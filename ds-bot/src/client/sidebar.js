@@ -1066,7 +1066,9 @@ export function BotReturn({ wide, useSurface, useRoster, actions }) {
   // subscription to the team would redraw it on every team change.
   const ready = useRoster(value => value.ready === true)
   // Agent mode draws no team sidebar; there this control is the team interface.
-  useReportReady(mode === 'agent' && ready, undefined)
+  // No roster is passed: the argument only feeds the desktop app's start animation,
+  // and the team is not loaded yet when this entry first draws.
+  useReportReady(mode === 'agent' && ready)
   if (mode !== 'agent') return null
   return h('div', { className: 'bt-return' },
     h(SurfaceSwitch, { mode: 'agent', actions, className: wide ? '' : 'bt-surface-rail', compact: !wide }))

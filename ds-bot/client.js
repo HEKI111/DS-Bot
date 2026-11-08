@@ -15763,7 +15763,7 @@ function FooterAccount(props) {
 function BotReturn({ wide, useSurface, useRoster, actions }) {
   const mode = useSurface((value) => value.mode);
   const ready = useRoster((value) => value.ready === true);
-  useReportReady(mode === "agent" && ready, void 0);
+  useReportReady(mode === "agent" && ready);
   if (mode !== "agent") return null;
   return (0, import_react34.createElement)(
     "div",
