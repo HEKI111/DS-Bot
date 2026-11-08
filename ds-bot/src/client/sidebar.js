@@ -1067,13 +1067,16 @@ export function BotReturn({ wide, useSurface, useRoster, actions }) {
     h(SurfaceSwitch, { mode: 'agent', actions, className: wide ? '' : 'bt-surface-rail', readOnly: Boolean(roster?.readOnly) }))
 }
 
-// Agent mode has none of the shell-group styles, so the switch carries its own.
-// The column's tokens are the shell's; pin the ones this control reads so Agent
-// mode keeps its own contrast instead of falling back to transparent ink.
+// Agent mode has none of the shell-group styles, so the switch carries its own. The
+// theme tokens are painted by the shell group, which is withdrawn there, so every
+// value here comes from the surrounding ink instead of a --bt-* variable.
 export const RETURN_CSS = `
 .bt-return{display:flex;align-items:center;min-width:0;padding:0 8px}
-.bt-return .bt-surface{flex:1 1 auto;min-width:0}
-.bt-return .bt-surface-tab{--bt-ink:inherit;--bt-ink-2:inherit}
+.bt-return .bt-surface{flex:1 1 auto;min-width:0;background:color-mix(in srgb,currentColor 12%,transparent)}
+.bt-return .bt-surface-opt{color:inherit;opacity:.62}
+.bt-return .bt-surface-opt:hover:not([aria-checked="true"]):not(:disabled){color:inherit;opacity:.85}
+.bt-return .bt-surface-opt[aria-checked="true"]{background:color-mix(in srgb,currentColor 16%,transparent);color:inherit;opacity:1;box-shadow:none}
+.bt-return .bt-surface-opt:focus-visible{outline-color:currentColor}
 `
 
 export function BrandMark({ size = 24 }) {

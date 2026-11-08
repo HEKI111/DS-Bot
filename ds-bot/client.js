@@ -15773,8 +15773,11 @@ function BotReturn({ wide, useSurface, useRoster, actions }) {
 }
 var RETURN_CSS = `
 .bt-return{display:flex;align-items:center;min-width:0;padding:0 8px}
-.bt-return .bt-surface{flex:1 1 auto;min-width:0}
-.bt-return .bt-surface-tab{--bt-ink:inherit;--bt-ink-2:inherit}
+.bt-return .bt-surface{flex:1 1 auto;min-width:0;background:color-mix(in srgb,currentColor 12%,transparent)}
+.bt-return .bt-surface-opt{color:inherit;opacity:.62}
+.bt-return .bt-surface-opt:hover:not([aria-checked="true"]):not(:disabled){color:inherit;opacity:.85}
+.bt-return .bt-surface-opt[aria-checked="true"]{background:color-mix(in srgb,currentColor 16%,transparent);color:inherit;opacity:1;box-shadow:none}
+.bt-return .bt-surface-opt:focus-visible{outline-color:currentColor}
 `;
 function BrandMark({ size = 24 }) {
   return (0, import_react34.createElement)("span", { className: "bt-brand-whale" }, (0, import_react34.createElement)(BotMark, { look: MAIN_LOOK, size }));
