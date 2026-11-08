@@ -68,7 +68,7 @@ export const SURFACE_SWITCH_CSS = `
 /* The rail has no room for two labels: the active mode still reads as a dot. */
 .bt-surface.bt-surface-rail{padding:0;background:none;flex-direction:column;gap:2px}
 .bt-surface.bt-surface-rail .bt-surface-opt{width:28px;height:22px;padding:0;font-size:9px;line-height:22px;letter-spacing:.02em}
-/* In the column's top row the switch sits beside the brand and the round actions,
-   so it shrinks before they do. */
-.bt-surface.bt-surface-head{flex:0 1 auto;max-width:180px;margin-right:auto}
+/* In the column's top row the switch shares the row with the round actions,
+   which the brand's own margin-right:auto already holds to the right. */
+.bt-surface.bt-surface-head{flex:0 1 auto;max-width:180px}
 `
