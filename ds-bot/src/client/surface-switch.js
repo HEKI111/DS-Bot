@@ -40,7 +40,7 @@ export function SurfaceSwitch({ mode, actions, readOnly = false, className = '' 
       event.preventDefault()
       const target = next === 'agent' ? 'bot' : 'agent'
       pick(target)
-      event.currentTarget.parentElement?.querySelector(`[data-tab="${target}"]`)?.focus()
+      event.currentTarget?.parentElement?.querySelector(`[data-tab="${target}"]`)?.focus()
     },
     'data-tab': next,
   }, t(labelOf(next)))
