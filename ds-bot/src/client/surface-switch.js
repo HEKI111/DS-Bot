@@ -18,6 +18,10 @@ const SURFACES = ['agent', 'bot']
 const label = mode => t(mode === 'bot' ? 'Bots' : 'Sessions')
 // The rail is one icon wide, so it shows a single character instead of the label.
 const shortLabel = mode => t(mode === 'bot' ? 'Bots' : 'Sessions').slice(0, 1)
+// A radio group moves with the arrows that follow its orientation, and both axes are
+// accepted: the same control is horizontal in the column and vertical on the rail, and
+// a user reaching for either pair should not have to know which form is drawn.
+const STEP_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'])
 
 // Draws as a two-option segmented control. `readOnly` keeps it visible but inert
 // where the team cannot change (a second DSH holding the data lock): the switch is
@@ -43,12 +47,14 @@ export function SurfaceSwitch({ mode, actions, readOnly = false, className = '',
     disabled: readOnly,
     onClick: () => pick(next),
     onKeyDown: (event) => {
-      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+      if (!STEP_KEYS.has(event.key)) return
       event.preventDefault()
+      // Two options, so either direction lands on the other one; Up and Down mean
+      // the same as Left and Right on the rail.
       const target = next === 'agent' ? 'bot' : 'agent'
       pick(target)
-      // One of the two switches is on the page, and picking may have replaced the
-      // node the key came from: look the option up again rather than reuse it.
+      // Picking a surface may replace the node the key came from, and the switch that
+      // survives is the one in the other surface: look the option up again.
       globalThis.document?.querySelector(`[data-surface="${target}"]`)?.focus()
     },
     'data-surface': next,

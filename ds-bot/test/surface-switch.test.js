@@ -86,6 +86,10 @@ test('arrow keys move to the other surface, other keys are left to the page', ()
   options[1].props.onKeyDown({ key: 'ArrowLeft', preventDefault: () => { prevented = true } })
   assert.equal(prevented, true)
   assert.deepEqual(asked, ['agent'])
+  // Up and Down do the same: the rail's form is vertical, and the same control is
+  // drawn in both orientations.
+  options[1].props.onKeyDown({ key: 'ArrowDown', preventDefault: () => {} })
+  assert.deepEqual(asked, ['agent', 'agent'])
   options[1].props.onKeyDown({ key: 'Enter', preventDefault: () => { prevented = false } })
-  assert.deepEqual(asked, ['agent'])
+  assert.deepEqual(asked, ['agent', 'agent'])
 })

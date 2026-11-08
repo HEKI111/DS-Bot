@@ -14634,6 +14634,7 @@ var import_react33 = require("react");
 var SURFACES = ["agent", "bot"];
 var label = (mode) => t(mode === "bot" ? "Bots" : "Sessions");
 var shortLabel = (mode) => t(mode === "bot" ? "Bots" : "Sessions").slice(0, 1);
+var STEP_KEYS = /* @__PURE__ */ new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]);
 function SurfaceSwitch({ mode, actions, readOnly = false, className = "", compact: compact2 = false }) {
   const pick2 = (next) => {
     if (readOnly || next === mode) return;
@@ -14654,7 +14655,7 @@ function SurfaceSwitch({ mode, actions, readOnly = false, className = "", compac
     disabled: readOnly,
     onClick: () => pick2(next),
     onKeyDown: (event) => {
-      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      if (!STEP_KEYS.has(event.key)) return;
       event.preventDefault();
       const target = next === "agent" ? "bot" : "agent";
       pick2(target);
