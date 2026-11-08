@@ -577,7 +577,7 @@ export function TeamSidebar(props) {
     : h('div', { className: 'bt-rail-top' },
         h(UpdateButton, { useUpdate: props.useUpdate, actions }),
         h('button', { type: 'button', className: 'bt-round bt-side-collapse', 'aria-label': t('Collapse sidebar'), title: t('Collapse sidebar'), onClick: onToggle }, h(SidebarIcon)),
-        h(SurfaceSwitch, { mode: 'bot', actions, className: 'bt-surface-rail', readOnly: Boolean(roster.readOnly) }),
+        h(SurfaceSwitch, { mode: 'bot', actions, className: 'bt-surface-rail', compact: true, readOnly: Boolean(roster.readOnly) }),
         main ? h(BotRow, { ...rowProps, bot: main, marked: markedUnread[main.id] === true }) : roster.ready ? null : h('div', { className: 'bt-hint' }, bootFailed ? bootHint() : t('Setting up your Main Bot…')),
         h('span', { className: 'bt-rail-sep', 'aria-hidden': true }))
   // The foot stands in for the shell's hidden footer: the account avatar, and on
@@ -1053,18 +1053,20 @@ export function FooterAccount(props) {
 }
 
 // The only entry registered in every mode: in Agent mode the whole Bot surface is
-// withdrawn, and this is the way back. It draws the same two tabs the team column
-// shows, so Agent mode offers the switch in the same shape instead of a lone
+// withdrawn, and this is the way back. It draws the same two-option switch the team
+// column shows, so Agent mode offers the choice in the same shape instead of a lone
 // "DS Bot" button whose meaning only the team's own users could guess.
 export function BotReturn({ wide, useSurface, useRoster, actions }) {
   const mode = useSurface(value => value.mode)
-  const roster = useRoster(value => value)
-  const ready = roster?.ready
+  // Two flags, not the whole roster: this entry is registered in every mode, and a
+  // subscription to the team would redraw it on every change in the Bot team.
+  const ready = useRoster(value => value.ready === true)
+  const readOnly = useRoster(value => value.readOnly !== undefined)
   // Agent mode draws no team sidebar; there this control is the team interface.
-  useReportReady(mode === 'agent' && ready, roster)
+  useReportReady(mode === 'agent' && ready, undefined)
   if (mode !== 'agent') return null
   return h('div', { className: 'bt-return' },
-    h(SurfaceSwitch, { mode: 'agent', actions, className: wide ? '' : 'bt-surface-rail', readOnly: Boolean(roster?.readOnly) }))
+    h(SurfaceSwitch, { mode: 'agent', actions, className: wide ? '' : 'bt-surface-rail', compact: !wide, readOnly }))
 }
 
 // Agent mode has none of the shell-group styles, so the switch carries its own. The

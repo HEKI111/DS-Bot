@@ -14633,7 +14633,8 @@ function installFrameWatch(frame) {
 var import_react33 = require("react");
 var SURFACES = ["agent", "bot"];
 var label = (mode) => t(mode === "bot" ? "Bots" : "Sessions");
-function SurfaceSwitch({ mode, actions, readOnly = false, className = "" }) {
+var shortLabel = (mode) => t(mode === "bot" ? "Bots" : "Sessions").slice(0, 1);
+function SurfaceSwitch({ mode, actions, readOnly = false, className = "", compact: compact2 = false }) {
   const pick2 = (next) => {
     if (readOnly || next === mode) return;
     actions.setSurface?.(next);
@@ -14644,7 +14645,9 @@ function SurfaceSwitch({ mode, actions, readOnly = false, className = "" }) {
     role: "radio",
     className: "bt-surface-opt",
     "aria-checked": next === mode,
-    // The native title is the whole affordance on the rail, where the labels hide.
+    // The visible text is a single character on the rail, so the accessible name is
+    // spelled out here and the title carries it as the hover hint.
+    "aria-label": label(next),
     title: readOnly ? t("This window is read-only") : t("Switch to {name}", { name: label(next) }),
     // One stop in the tab order for the group; the arrow keys move within it.
     tabIndex: next === mode ? 0 : -1,
@@ -14658,7 +14661,7 @@ function SurfaceSwitch({ mode, actions, readOnly = false, className = "" }) {
       globalThis.document?.querySelector(`[data-surface="${target}"]`)?.focus();
     },
     "data-surface": next
-  }, label(next));
+  }, compact2 ? shortLabel(next) : label(next));
   return (0, import_react33.createElement)("div", {
     className: `bt-surface ${className}`.trim(),
     role: "radiogroup",
@@ -14674,9 +14677,9 @@ var SURFACE_SWITCH_CSS = `
 .bt-surface-opt[aria-checked="true"]{background:var(--bt-card);color:var(--bt-ink);box-shadow:0 1px 2px var(--bt-line-2)}
 .bt-surface-opt:disabled{cursor:default;opacity:.55}
 .bt-surface-opt:focus-visible{outline:2px solid var(--bt-accent);outline-offset:1px}
-/* The rail has no room for two labels: the active mode still reads as a dot. */
+/* The rail is one icon wide: stack the two options and show one character each. */
 .bt-surface.bt-surface-rail{padding:0;background:none;flex-direction:column;gap:2px}
-.bt-surface.bt-surface-rail .bt-surface-opt{width:28px;height:22px;padding:0;font-size:9px;line-height:22px;letter-spacing:.02em}
+.bt-surface.bt-surface-rail .bt-surface-opt{width:26px;height:22px;padding:0;font-size:11px;line-height:22px}
 /* In the column's top row the switch shares the row with the round actions,
    which the brand's own margin-right:auto already holds to the right. */
 .bt-surface.bt-surface-head{flex:0 1 auto;max-width:180px}
@@ -15262,7 +15265,7 @@ function TeamSidebar(props) {
     { className: "bt-rail-top" },
     (0, import_react34.createElement)(UpdateButton, { useUpdate: props.useUpdate, actions }),
     (0, import_react34.createElement)("button", { type: "button", className: "bt-round bt-side-collapse", "aria-label": t("Collapse sidebar"), title: t("Collapse sidebar"), onClick: onToggle }, (0, import_react34.createElement)(SidebarIcon)),
-    (0, import_react34.createElement)(SurfaceSwitch, { mode: "bot", actions, className: "bt-surface-rail", readOnly: Boolean(roster.readOnly) }),
+    (0, import_react34.createElement)(SurfaceSwitch, { mode: "bot", actions, className: "bt-surface-rail", compact: true, readOnly: Boolean(roster.readOnly) }),
     main ? (0, import_react34.createElement)(BotRow, { ...rowProps, bot: main, marked: markedUnread[main.id] === true }) : roster.ready ? null : (0, import_react34.createElement)("div", { className: "bt-hint" }, bootFailed ? bootHint() : t("Setting up your Main Bot…")),
     (0, import_react34.createElement)("span", { className: "bt-rail-sep", "aria-hidden": true })
   );
@@ -15761,14 +15764,14 @@ function FooterAccount(props) {
 }
 function BotReturn({ wide, useSurface, useRoster, actions }) {
   const mode = useSurface((value) => value.mode);
-  const roster = useRoster((value) => value);
-  const ready = roster?.ready;
-  useReportReady(mode === "agent" && ready, roster);
+  const ready = useRoster((value) => value.ready === true);
+  const readOnly = useRoster((value) => value.readOnly !== void 0);
+  useReportReady(mode === "agent" && ready, void 0);
   if (mode !== "agent") return null;
   return (0, import_react34.createElement)(
     "div",
     { className: "bt-return" },
-    (0, import_react34.createElement)(SurfaceSwitch, { mode: "agent", actions, className: wide ? "" : "bt-surface-rail", readOnly: Boolean(roster?.readOnly) })
+    (0, import_react34.createElement)(SurfaceSwitch, { mode: "agent", actions, className: wide ? "" : "bt-surface-rail", compact: !wide, readOnly })
   );
 }
 var RETURN_CSS = `

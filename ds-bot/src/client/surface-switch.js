@@ -16,11 +16,14 @@ import { t } from './i18n.js'
 const SURFACES = ['agent', 'bot']
 
 const label = mode => t(mode === 'bot' ? 'Bots' : 'Sessions')
+// The rail is one icon wide, so it shows a single character instead of the label.
+const shortLabel = mode => t(mode === 'bot' ? 'Bots' : 'Sessions').slice(0, 1)
 
 // Draws as a two-option segmented control. `readOnly` keeps it visible but inert
 // where the team cannot change (a second DSH holding the data lock): the switch is
-// chrome for the surface, not a write to the team.
-export function SurfaceSwitch({ mode, actions, readOnly = false, className = '' }) {
+// chrome for the surface, not a write to the team. `compact` draws the rail form,
+// which has room for one character per option.
+export function SurfaceSwitch({ mode, actions, readOnly = false, className = '', compact = false }) {
   const pick = (next) => {
     if (readOnly || next === mode) return
     actions.setSurface?.(next)
@@ -31,7 +34,9 @@ export function SurfaceSwitch({ mode, actions, readOnly = false, className = '' 
     role: 'radio',
     className: 'bt-surface-opt',
     'aria-checked': next === mode,
-    // The native title is the whole affordance on the rail, where the labels hide.
+    // The visible text is a single character on the rail, so the accessible name is
+    // spelled out here and the title carries it as the hover hint.
+    'aria-label': label(next),
     title: readOnly ? t('This window is read-only') : t('Switch to {name}', { name: label(next) }),
     // One stop in the tab order for the group; the arrow keys move within it.
     tabIndex: next === mode ? 0 : -1,
@@ -47,7 +52,7 @@ export function SurfaceSwitch({ mode, actions, readOnly = false, className = '' 
       globalThis.document?.querySelector(`[data-surface="${target}"]`)?.focus()
     },
     'data-surface': next,
-  }, label(next))
+  }, compact ? shortLabel(next) : label(next))
 
   return h('div', {
     className: `bt-surface ${className}`.trim(),
@@ -65,9 +70,9 @@ export const SURFACE_SWITCH_CSS = `
 .bt-surface-opt[aria-checked="true"]{background:var(--bt-card);color:var(--bt-ink);box-shadow:0 1px 2px var(--bt-line-2)}
 .bt-surface-opt:disabled{cursor:default;opacity:.55}
 .bt-surface-opt:focus-visible{outline:2px solid var(--bt-accent);outline-offset:1px}
-/* The rail has no room for two labels: the active mode still reads as a dot. */
+/* The rail is one icon wide: stack the two options and show one character each. */
 .bt-surface.bt-surface-rail{padding:0;background:none;flex-direction:column;gap:2px}
-.bt-surface.bt-surface-rail .bt-surface-opt{width:28px;height:22px;padding:0;font-size:9px;line-height:22px;letter-spacing:.02em}
+.bt-surface.bt-surface-rail .bt-surface-opt{width:26px;height:22px;padding:0;font-size:11px;line-height:22px}
 /* In the column's top row the switch shares the row with the round actions,
    which the brand's own margin-right:auto already holds to the right. */
 .bt-surface.bt-surface-head{flex:0 1 auto;max-width:180px}

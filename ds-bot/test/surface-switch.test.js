@@ -46,10 +46,19 @@ test('the marking follows the mode, so Agent mode points back at the Bots', () =
   assert.deepEqual(options.map(option => option.props['aria-checked']), [true, false])
 })
 
+const groupOf = tree => walk(tree).find(node => node.props?.role === 'radiogroup')
+
 test('the group describes itself, and turns vertical on the rail', () => {
-  const group = tree => walk(tree).find(node => node.props?.role === 'radiogroup')
-  assert.equal(group(draw({})).props['aria-orientation'], 'horizontal')
-  assert.equal(group(draw({ className: 'bt-surface-rail' })).props['aria-orientation'], 'vertical')
+  assert.equal(groupOf(draw({})).props['aria-orientation'], 'horizontal')
+  assert.equal(groupOf(draw({ className: 'bt-surface-rail' })).props['aria-orientation'], 'vertical')
+})
+
+test('the rail form shows one character but keeps the full name for assistive tech', () => {
+  const text = options => options.map(option => option.props.children.join(''))
+  assert.deepEqual(text(optionsOf(draw({}))), ['Sessions', 'Bots'])
+  assert.deepEqual(text(optionsOf(draw({ compact: true }))), ['S', 'B'])
+  // The visible character is not the name a screen reader should read out.
+  assert.deepEqual(optionsOf(draw({ compact: true })).map(option => option.props['aria-label']), ['Sessions', 'Bots'])
 })
 
 test('picking a surface asks for the other one, and picks the current one for nothing', () => {
