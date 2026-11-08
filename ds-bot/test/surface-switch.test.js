@@ -19,59 +19,64 @@ new Function('require', 'module', 'exports', outputFiles[0].text)(
   module, module.exports)
 const { SurfaceSwitch } = module.exports
 
-// Every rendered node, depth first. Children may be strings or nested arrays,
-// which the `.map` over the tabs produces.
+// Every rendered node, depth first. Children may be strings or nested arrays, which
+// the `.map` over the options produces.
 const walk = node => {
   if (Array.isArray(node)) return node.flatMap(walk)
   if (node === null || node === undefined || typeof node !== 'object') return []
   return [node, ...walk(node.props?.children ?? [])]
 }
 
-const tabsOf = tree => walk(tree).filter(node => node.props?.role === 'tab')
+const optionsOf = tree => walk(tree).filter(node => node.props?.role === 'radio')
 
 function draw(props) {
   return SurfaceSwitch({ actions: {}, mode: 'bot', ...props })
 }
 
 test('both surfaces are always offered, and the current one is marked', () => {
-  const tabs = tabsOf(draw({ mode: 'bot' }))
-  assert.deepEqual(tabs.map(tab => tab.props['data-tab']), ['agent', 'bot'])
-  assert.deepEqual(tabs.map(tab => tab.props['aria-selected']), [false, true])
-  // The unselected tab stays focusable by arrow key, not by tab.
-  assert.deepEqual(tabs.map(tab => tab.props.tabIndex), [-1, 0])
+  const options = optionsOf(draw({ mode: 'bot' }))
+  assert.deepEqual(options.map(option => option.props['data-surface']), ['agent', 'bot'])
+  assert.deepEqual(options.map(option => option.props['aria-checked']), [false, true])
+  // One stop in the tab order for the group; the arrow keys move within it.
+  assert.deepEqual(options.map(option => option.props.tabIndex), [-1, 0])
 })
 
 test('the marking follows the mode, so Agent mode points back at the Bots', () => {
-  const tabs = tabsOf(draw({ mode: 'agent' }))
-  assert.deepEqual(tabs.map(tab => tab.props['aria-selected']), [true, false])
+  const options = optionsOf(draw({ mode: 'agent' }))
+  assert.deepEqual(options.map(option => option.props['aria-checked']), [true, false])
+})
+
+test('the group describes itself, and turns vertical on the rail', () => {
+  const group = tree => walk(tree).find(node => node.props?.role === 'radiogroup')
+  assert.equal(group(draw({})).props['aria-orientation'], 'horizontal')
+  assert.equal(group(draw({ className: 'bt-surface-rail' })).props['aria-orientation'], 'vertical')
 })
 
 test('picking a surface asks for the other one, and picks the current one for nothing', () => {
   const asked = []
   const actions = { setSurface: mode => asked.push(mode) }
-  const tabs = tabsOf(draw({ mode: 'bot', actions }))
-  tabs[0].props.onClick()
-  tabs[1].props.onClick()
+  const options = optionsOf(draw({ mode: 'bot', actions }))
+  options[0].props.onClick()
+  options[1].props.onClick()
   assert.deepEqual(asked, ['agent'])
 })
 
 test('a read-only window shows the switch but changes nothing', () => {
   const asked = []
-  const tabs = tabsOf(draw({ mode: 'bot', readOnly: true, actions: { setSurface: mode => asked.push(mode) } }))
-  assert.equal(tabs.every(tab => tab.props.disabled), true)
-  for (const tab of tabs) tab.props.onClick()
+  const options = optionsOf(draw({ mode: 'bot', readOnly: true, actions: { setSurface: mode => asked.push(mode) } }))
+  assert.equal(options.every(option => option.props.disabled), true)
+  for (const option of options) option.props.onClick()
   assert.deepEqual(asked, [])
 })
 
-test('arrow keys move to the other tab', () => {
+test('arrow keys move to the other surface, other keys are left to the page', () => {
   const asked = []
   const actions = { setSurface: mode => asked.push(mode) }
-  const tabs = tabsOf(draw({ mode: 'bot', actions }))
+  const options = optionsOf(draw({ mode: 'bot', actions }))
   let prevented = false
-  tabs[1].props.onKeyDown({ key: 'ArrowLeft', preventDefault: () => { prevented = true } })
+  options[1].props.onKeyDown({ key: 'ArrowLeft', preventDefault: () => { prevented = true } })
   assert.equal(prevented, true)
   assert.deepEqual(asked, ['agent'])
-  // Keys the control does not own are left to the page.
-  tabs[1].props.onKeyDown({ key: 'Enter', preventDefault: () => { prevented = false } })
+  options[1].props.onKeyDown({ key: 'Enter', preventDefault: () => { prevented = false } })
   assert.deepEqual(asked, ['agent'])
 })
