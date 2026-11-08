@@ -194,6 +194,9 @@ const ZH = {
   'This DSH cannot load connectors': '这个 DSH 不能加载连接器',
   'No such connector': '没有这个连接器',
   'Classic Agent mode': '经典 Agent 模式',
+  'Interface': '界面',
+  'This window is read-only': '这个窗口是只读的',
+  'Switch to {name}': '切换到{name}',
   'Switch': '切换',
   '{model} is not available anymore. Pick another model for me.': '{model} 已经不可用了。给我换一个模型吧。',
   "Hi, I'm {name}. I don't have a model yet. How do you want to set one up?": '你好，我是 {name}。我还没有可用的模型。你想怎么配置？',
@@ -575,7 +578,7 @@ const ZH = {
 
   // Settings dialog
   General: '通用',
-  Bots: 'Bot',
+  Bots: '机器人',
   'Group chats': '群聊',
   Secrets: '密钥',
   Appearance: '外观',

@@ -16,6 +16,7 @@ import { showsDshRow } from './dsh-offer.js'
 import { quietly } from './diagnostics.js'
 import { frameLayout, dragColumn, RAIL_WIDTH, FALLBACK_SIDEBAR_WIDTH, userSidebarToggle } from './frame-layout.js'
 import { chatRoom, dshCollapsed } from './frame-watch.js'
+import { SurfaceSwitch } from './surface-switch.js'
 
 // -------------------------------------------------------------------------
 // Sidebar
@@ -568,6 +569,7 @@ export function TeamSidebar(props) {
   const top = wideContent
     ? h('div', { className: 'bt-side-top' },
         h('span', { className: 'bt-brand' }, h(BrandName)),
+        h(SurfaceSwitch, { mode: 'bot', actions, className: 'bt-surface-head', readOnly: Boolean(roster.readOnly) }),
         h(UpdateButton, { useUpdate: props.useUpdate, actions }),
         h('button', { type: 'button', className: 'bt-round', 'aria-label': t('Search'), title: t('Search'), onClick: () => actions.openPalette() }, h(SearchIcon)),
         h('button', { type: 'button', className: 'bt-round', 'aria-label': t('New…'), title: t('New…'), onClick: () => actions.openNewChat('new') }, h(PlusIcon)),
@@ -575,6 +577,7 @@ export function TeamSidebar(props) {
     : h('div', { className: 'bt-rail-top' },
         h(UpdateButton, { useUpdate: props.useUpdate, actions }),
         h('button', { type: 'button', className: 'bt-round bt-side-collapse', 'aria-label': t('Collapse sidebar'), title: t('Collapse sidebar'), onClick: onToggle }, h(SidebarIcon)),
+        h(SurfaceSwitch, { mode: 'bot', actions, className: 'bt-surface-rail', readOnly: Boolean(roster.readOnly) }),
         main ? h(BotRow, { ...rowProps, bot: main, marked: markedUnread[main.id] === true }) : roster.ready ? null : h('div', { className: 'bt-hint' }, bootFailed ? bootHint() : t('Setting up your Main Bot…')),
         h('span', { className: 'bt-rail-sep', 'aria-hidden': true }))
   // The foot stands in for the shell's hidden footer: the account avatar, and on
@@ -1050,28 +1053,27 @@ export function FooterAccount(props) {
 }
 
 // The only entry registered in every mode: in Agent mode the whole Bot surface is
-// withdrawn, and this button in the shell's own footer is the way back.
+// withdrawn, and this is the way back. It draws the same two tabs the team column
+// shows, so Agent mode offers the switch in the same shape instead of a lone
+// "DS Bot" button whose meaning only the team's own users could guess.
 export function BotReturn({ wide, useSurface, useRoster, actions }) {
   const mode = useSurface(value => value.mode)
-  const ready = useRoster(value => value.ready)
-  // Agent mode draws no team sidebar; there this button is the team interface.
-  useReportReady(mode === 'agent' && ready)
+  const roster = useRoster(value => value)
+  const ready = roster?.ready
+  // Agent mode draws no team sidebar; there this control is the team interface.
+  useReportReady(mode === 'agent' && ready, roster)
   if (mode !== 'agent') return null
-  return h('button', { type: 'button', className: 'bt-return', 'aria-label': t('DS Bot'), title: t('DS Bot'), onClick: () => actions.setSurface('bot') },
-    h(BotMark, { look: MAIN_LOOK, size: 20 }),
-    wide ? h('span', { className: 'bt-return-name' }, t('DS Bot')) : null)
+  return h('div', { className: 'bt-return' },
+    h(SurfaceSwitch, { mode: 'agent', actions, className: wide ? '' : 'bt-surface-rail', readOnly: Boolean(roster?.readOnly) }))
 }
 
-// Agent mode has none of the shell-group styles, so the return button carries its own.
+// Agent mode has none of the shell-group styles, so the switch carries its own.
+// The column's tokens are the shell's; pin the ones this control reads so Agent
+// mode keeps its own contrast instead of falling back to transparent ink.
 export const RETURN_CSS = `
-.bt-return{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:36px;padding:0 14px;border:0;border-radius:999px;background:none;color:inherit;font:inherit;font-size:14px;line-height:20px;cursor:pointer;transition:background-color .12s ease}
-.bt-return:hover{background:rgba(127,127,127,.14)}
-.bt-return:active{transform:scale(.96)}
-.bt-return .bt-mark{display:inline-flex;flex:none;line-height:0}
-.bt-return .bt-mark svg{width:100%;height:100%;overflow:visible}
-/* Shell styles carry --bt-ink-deepseek and Agent mode withdraws them; pin it here. */
-.bt-return .bt-mark{--bt-ink-deepseek:#4D6BFE}
-.bt-return-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bt-return{display:flex;align-items:center;min-width:0;padding:0 8px}
+.bt-return .bt-surface{flex:1 1 auto;min-width:0}
+.bt-return .bt-surface-tab{--bt-ink:inherit;--bt-ink-2:inherit}
 `
 
 export function BrandMark({ size = 24 }) {
