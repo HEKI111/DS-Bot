@@ -70,12 +70,14 @@ test('picking a surface asks for the other one, and picks the current one for no
   assert.deepEqual(asked, ['agent'])
 })
 
-test('a read-only window shows the switch but changes nothing', () => {
+test('a read-only window can still change what it shows', () => {
+  // The read-only lock gates writes to the team; the surface is this browser's view,
+  // so a second DSH holding the data lock must not trap the user in one surface.
   const asked = []
-  const options = optionsOf(draw({ mode: 'bot', readOnly: true, actions: { setSurface: mode => asked.push(mode) } }))
-  assert.equal(options.every(option => option.props.disabled), true)
-  for (const option of options) option.props.onClick()
-  assert.deepEqual(asked, [])
+  const options = optionsOf(draw({ mode: 'bot', actions: { setSurface: mode => asked.push(mode) } }))
+  assert.equal(options.some(option => option.props.disabled), false)
+  options[0].props.onClick()
+  assert.deepEqual(asked, ['agent'])
 })
 
 test('arrow keys move to the other surface, other keys are left to the page', () => {

@@ -23,13 +23,12 @@ const shortLabel = mode => t(mode === 'bot' ? 'Bots' : 'Sessions').slice(0, 1)
 // a user reaching for either pair should not have to know which form is drawn.
 const STEP_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'])
 
-// Draws as a two-option segmented control. `readOnly` keeps it visible but inert
-// where the team cannot change (a second DSH holding the data lock): the switch is
-// chrome for the surface, not a write to the team. `compact` draws the rail form,
-// which has room for one character per option.
-export function SurfaceSwitch({ mode, actions, readOnly = false, className = '', compact = false }) {
+// Draws as a two-option segmented control. `compact` draws the rail form, which has
+// room for one character per option. There is no read-only form: the switch only
+// changes what this browser shows, which every window may do.
+export function SurfaceSwitch({ mode, actions, className = '', compact = false }) {
   const pick = (next) => {
-    if (readOnly || next === mode) return
+    if (next === mode) return
     actions.setSurface?.(next)
   }
   const option = (next) => h('button', {
@@ -41,10 +40,9 @@ export function SurfaceSwitch({ mode, actions, readOnly = false, className = '',
     // The visible text is a single character on the rail, so the accessible name is
     // spelled out here and the title carries it as the hover hint.
     'aria-label': label(next),
-    title: readOnly ? t('This window is read-only') : t('Switch to {name}', { name: label(next) }),
+    title: t('Switch to {name}', { name: label(next) }),
     // One stop in the tab order for the group; the arrow keys move within it.
     tabIndex: next === mode ? 0 : -1,
-    disabled: readOnly,
     onClick: () => pick(next),
     onKeyDown: (event) => {
       if (!STEP_KEYS.has(event.key)) return
@@ -72,9 +70,8 @@ export function SurfaceSwitch({ mode, actions, readOnly = false, className = '',
 export const SURFACE_SWITCH_CSS = `
 .bt-surface{display:flex;align-items:center;gap:2px;padding:2px;border-radius:999px;background:var(--bt-tag-bg)}
 .bt-surface-opt{flex:1 1 auto;min-width:0;padding:0 10px;height:24px;border:0;border-radius:999px;background:none;color:var(--bt-ink-2);font:inherit;font-size:12px;line-height:24px;font-weight:500;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:background-color .12s ease,color .12s ease}
-.bt-surface-opt:hover:not([aria-checked="true"]):not(:disabled){color:var(--bt-ink)}
+.bt-surface-opt:hover:not([aria-checked="true"]){color:var(--bt-ink)}
 .bt-surface-opt[aria-checked="true"]{background:var(--bt-card);color:var(--bt-ink);box-shadow:0 1px 2px var(--bt-line-2)}
-.bt-surface-opt:disabled{cursor:default;opacity:.55}
 .bt-surface-opt:focus-visible{outline:2px solid var(--bt-accent);outline-offset:1px}
 /* The rail is one icon wide: stack the two options and show one character each. */
 .bt-surface.bt-surface-rail{padding:0;background:none;flex-direction:column;gap:2px}

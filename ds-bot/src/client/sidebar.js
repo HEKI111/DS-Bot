@@ -569,7 +569,7 @@ export function TeamSidebar(props) {
   const top = wideContent
     ? h('div', { className: 'bt-side-top' },
         h('span', { className: 'bt-brand' }, h(BrandName)),
-        h(SurfaceSwitch, { mode: 'bot', actions, className: 'bt-surface-head', readOnly: Boolean(roster.readOnly) }),
+        h(SurfaceSwitch, { mode: 'bot', actions, className: 'bt-surface-head' }),
         h(UpdateButton, { useUpdate: props.useUpdate, actions }),
         h('button', { type: 'button', className: 'bt-round', 'aria-label': t('Search'), title: t('Search'), onClick: () => actions.openPalette() }, h(SearchIcon)),
         h('button', { type: 'button', className: 'bt-round', 'aria-label': t('New…'), title: t('New…'), onClick: () => actions.openNewChat('new') }, h(PlusIcon)),
@@ -577,7 +577,7 @@ export function TeamSidebar(props) {
     : h('div', { className: 'bt-rail-top' },
         h(UpdateButton, { useUpdate: props.useUpdate, actions }),
         h('button', { type: 'button', className: 'bt-round bt-side-collapse', 'aria-label': t('Collapse sidebar'), title: t('Collapse sidebar'), onClick: onToggle }, h(SidebarIcon)),
-        h(SurfaceSwitch, { mode: 'bot', actions, className: 'bt-surface-rail', compact: true, readOnly: Boolean(roster.readOnly) }),
+        h(SurfaceSwitch, { mode: 'bot', actions, className: 'bt-surface-rail', compact: true }),
         main ? h(BotRow, { ...rowProps, bot: main, marked: markedUnread[main.id] === true }) : roster.ready ? null : h('div', { className: 'bt-hint' }, bootFailed ? bootHint() : t('Setting up your Main Bot…')),
         h('span', { className: 'bt-rail-sep', 'aria-hidden': true }))
   // The foot stands in for the shell's hidden footer: the account avatar, and on
@@ -1056,17 +1056,20 @@ export function FooterAccount(props) {
 // withdrawn, and this is the way back. It draws the same two-option switch the team
 // column shows, so Agent mode offers the choice in the same shape instead of a lone
 // "DS Bot" button whose meaning only the team's own users could guess.
+//
+// The switch is never inert here. `readOnly` gates writes to the *team* (a second DSH
+// holding the data lock); picking a surface only changes this browser's view, which a
+// read-only window can still do, so passing it would have locked the user in.
 export function BotReturn({ wide, useSurface, useRoster, actions }) {
   const mode = useSurface(value => value.mode)
-  // Two flags, not the whole roster: this entry is registered in every mode, and a
-  // subscription to the team would redraw it on every change in the Bot team.
+  // One flag, not the whole roster: this entry is registered in every mode, and a
+  // subscription to the team would redraw it on every team change.
   const ready = useRoster(value => value.ready === true)
-  const readOnly = useRoster(value => value.readOnly !== undefined)
   // Agent mode draws no team sidebar; there this control is the team interface.
   useReportReady(mode === 'agent' && ready, undefined)
   if (mode !== 'agent') return null
   return h('div', { className: 'bt-return' },
-    h(SurfaceSwitch, { mode: 'agent', actions, className: wide ? '' : 'bt-surface-rail', compact: !wide, readOnly }))
+    h(SurfaceSwitch, { mode: 'agent', actions, className: wide ? '' : 'bt-surface-rail', compact: !wide }))
 }
 
 // Agent mode has none of the shell-group styles, so the switch carries its own. The

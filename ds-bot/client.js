@@ -231,7 +231,6 @@ var ZH = {
   "No such connector": "没有这个连接器",
   "Classic Agent mode": "经典 Agent 模式",
   "Interface": "界面",
-  "This window is read-only": "这个窗口是只读的",
   "Switch to {name}": "切换到{name}",
   "Switch": "切换",
   "{model} is not available anymore. Pick another model for me.": "{model} 已经不可用了。给我换一个模型吧。",
@@ -14635,9 +14634,9 @@ var SURFACES = ["agent", "bot"];
 var label = (mode) => t(mode === "bot" ? "Bots" : "Sessions");
 var shortLabel = (mode) => t(mode === "bot" ? "Bots" : "Sessions").slice(0, 1);
 var STEP_KEYS = /* @__PURE__ */ new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]);
-function SurfaceSwitch({ mode, actions, readOnly = false, className = "", compact: compact2 = false }) {
+function SurfaceSwitch({ mode, actions, className = "", compact: compact2 = false }) {
   const pick2 = (next) => {
-    if (readOnly || next === mode) return;
+    if (next === mode) return;
     actions.setSurface?.(next);
   };
   const option = (next) => (0, import_react33.createElement)("button", {
@@ -14649,10 +14648,9 @@ function SurfaceSwitch({ mode, actions, readOnly = false, className = "", compac
     // The visible text is a single character on the rail, so the accessible name is
     // spelled out here and the title carries it as the hover hint.
     "aria-label": label(next),
-    title: readOnly ? t("This window is read-only") : t("Switch to {name}", { name: label(next) }),
+    title: t("Switch to {name}", { name: label(next) }),
     // One stop in the tab order for the group; the arrow keys move within it.
     tabIndex: next === mode ? 0 : -1,
-    disabled: readOnly,
     onClick: () => pick2(next),
     onKeyDown: (event) => {
       if (!STEP_KEYS.has(event.key)) return;
@@ -14674,9 +14672,8 @@ function SurfaceSwitch({ mode, actions, readOnly = false, className = "", compac
 var SURFACE_SWITCH_CSS = `
 .bt-surface{display:flex;align-items:center;gap:2px;padding:2px;border-radius:999px;background:var(--bt-tag-bg)}
 .bt-surface-opt{flex:1 1 auto;min-width:0;padding:0 10px;height:24px;border:0;border-radius:999px;background:none;color:var(--bt-ink-2);font:inherit;font-size:12px;line-height:24px;font-weight:500;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:background-color .12s ease,color .12s ease}
-.bt-surface-opt:hover:not([aria-checked="true"]):not(:disabled){color:var(--bt-ink)}
+.bt-surface-opt:hover:not([aria-checked="true"]){color:var(--bt-ink)}
 .bt-surface-opt[aria-checked="true"]{background:var(--bt-card);color:var(--bt-ink);box-shadow:0 1px 2px var(--bt-line-2)}
-.bt-surface-opt:disabled{cursor:default;opacity:.55}
 .bt-surface-opt:focus-visible{outline:2px solid var(--bt-accent);outline-offset:1px}
 /* The rail is one icon wide: stack the two options and show one character each. */
 .bt-surface.bt-surface-rail{padding:0;background:none;flex-direction:column;gap:2px}
@@ -15256,7 +15253,7 @@ function TeamSidebar(props) {
     "div",
     { className: "bt-side-top" },
     (0, import_react34.createElement)("span", { className: "bt-brand" }, (0, import_react34.createElement)(BrandName)),
-    (0, import_react34.createElement)(SurfaceSwitch, { mode: "bot", actions, className: "bt-surface-head", readOnly: Boolean(roster.readOnly) }),
+    (0, import_react34.createElement)(SurfaceSwitch, { mode: "bot", actions, className: "bt-surface-head" }),
     (0, import_react34.createElement)(UpdateButton, { useUpdate: props.useUpdate, actions }),
     (0, import_react34.createElement)("button", { type: "button", className: "bt-round", "aria-label": t("Search"), title: t("Search"), onClick: () => actions.openPalette() }, (0, import_react34.createElement)(SearchIcon)),
     (0, import_react34.createElement)("button", { type: "button", className: "bt-round", "aria-label": t("New…"), title: t("New…"), onClick: () => actions.openNewChat("new") }, (0, import_react34.createElement)(PlusIcon)),
@@ -15266,7 +15263,7 @@ function TeamSidebar(props) {
     { className: "bt-rail-top" },
     (0, import_react34.createElement)(UpdateButton, { useUpdate: props.useUpdate, actions }),
     (0, import_react34.createElement)("button", { type: "button", className: "bt-round bt-side-collapse", "aria-label": t("Collapse sidebar"), title: t("Collapse sidebar"), onClick: onToggle }, (0, import_react34.createElement)(SidebarIcon)),
-    (0, import_react34.createElement)(SurfaceSwitch, { mode: "bot", actions, className: "bt-surface-rail", compact: true, readOnly: Boolean(roster.readOnly) }),
+    (0, import_react34.createElement)(SurfaceSwitch, { mode: "bot", actions, className: "bt-surface-rail", compact: true }),
     main ? (0, import_react34.createElement)(BotRow, { ...rowProps, bot: main, marked: markedUnread[main.id] === true }) : roster.ready ? null : (0, import_react34.createElement)("div", { className: "bt-hint" }, bootFailed ? bootHint() : t("Setting up your Main Bot…")),
     (0, import_react34.createElement)("span", { className: "bt-rail-sep", "aria-hidden": true })
   );
@@ -15766,13 +15763,12 @@ function FooterAccount(props) {
 function BotReturn({ wide, useSurface, useRoster, actions }) {
   const mode = useSurface((value) => value.mode);
   const ready = useRoster((value) => value.ready === true);
-  const readOnly = useRoster((value) => value.readOnly !== void 0);
   useReportReady(mode === "agent" && ready, void 0);
   if (mode !== "agent") return null;
   return (0, import_react34.createElement)(
     "div",
     { className: "bt-return" },
-    (0, import_react34.createElement)(SurfaceSwitch, { mode: "agent", actions, className: wide ? "" : "bt-surface-rail", compact: !wide, readOnly })
+    (0, import_react34.createElement)(SurfaceSwitch, { mode: "agent", actions, className: wide ? "" : "bt-surface-rail", compact: !wide })
   );
 }
 var RETURN_CSS = `
