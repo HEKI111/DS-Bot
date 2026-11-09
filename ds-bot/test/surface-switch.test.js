@@ -95,3 +95,27 @@ test('arrow keys move to the other surface, other keys are left to the page', ()
   options[1].props.onKeyDown({ key: 'Enter', preventDefault: () => { prevented = false } })
   assert.deepEqual(asked, ['agent', 'agent'])
 })
+
+// A surface change re-renders the whole page, so the replacement switch is not in the
+// DOM yet when the key handler returns. Focus must land on it afterwards, or the group
+// is left unfocused and the arrows stop working after one press.
+test('the arrow key hands focus to the switch the new surface draws', async () => {
+  const focused = []
+  let drawnYet = false
+  const spy = setTimeout
+  globalThis.document = {
+    // Nothing to focus until the deferred pass; this is what a real re-render looks
+    // like from the handler's point of view.
+    querySelector: () => (drawnYet ? { focus: () => focused.push('focused') } : null),
+  }
+  // The component defers with the page's timer; run it as soon as it is scheduled.
+  globalThis.setTimeout = run => { drawnYet = true; run() }
+  try {
+    const options = optionsOf(draw({ mode: 'bot', actions: { setSurface: () => {} } }))
+    options[1].props.onKeyDown({ key: 'ArrowLeft', preventDefault: () => {} })
+    assert.deepEqual(focused, ['focused'])
+  } finally {
+    globalThis.setTimeout = spy
+    delete globalThis.document
+  }
+})

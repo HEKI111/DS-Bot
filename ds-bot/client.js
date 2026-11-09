@@ -14634,6 +14634,13 @@ var SURFACES = ["agent", "bot"];
 var label = (mode) => t(mode === "bot" ? "Bots" : "Sessions");
 var shortLabel = (mode) => t(mode === "bot" ? "Bots" : "Sessions").slice(0, 1);
 var STEP_KEYS = /* @__PURE__ */ new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]);
+function focusSurface(target) {
+  const find = () => globalThis.document?.querySelector(`[data-surface="${target}"]`);
+  find()?.focus();
+  setTimeout(() => {
+    find()?.focus();
+  }, 0);
+}
 function SurfaceSwitch({ mode, actions, className = "", compact: compact2 = false }) {
   const pick2 = (next) => {
     if (next === mode) return;
@@ -14657,7 +14664,7 @@ function SurfaceSwitch({ mode, actions, className = "", compact: compact2 = fals
       event.preventDefault();
       const target = next === "agent" ? "bot" : "agent";
       pick2(target);
-      globalThis.document?.querySelector(`[data-surface="${target}"]`)?.focus();
+      focusSurface(target);
     },
     "data-surface": next
   }, compact2 ? shortLabel(next) : label(next));

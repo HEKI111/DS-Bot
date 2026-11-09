@@ -23,6 +23,17 @@ const shortLabel = mode => t(mode === 'bot' ? 'Bots' : 'Sessions').slice(0, 1)
 // a user reaching for either pair should not have to know which form is drawn.
 const STEP_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'])
 
+// Focus the option for `target` once the shell has drawn it. The pick re-renders the
+// whole surface, so the button that took the key is unmounted while this runs and a
+// synchronous lookup would focus the node about to be removed — leaving the focus on
+// <body> and the keyboard unable to move the choice again. The deferred pass lands
+// after React commits the replacement switch.
+function focusSurface(target) {
+  const find = () => globalThis.document?.querySelector(`[data-surface="${target}"]`)
+  find()?.focus()
+  setTimeout(() => { find()?.focus() }, 0)
+}
+
 // Draws as a two-option segmented control. `compact` draws the rail form, which has
 // room for one character per option. There is no read-only form: the switch only
 // changes what this browser shows, which every window may do.
@@ -51,9 +62,7 @@ export function SurfaceSwitch({ mode, actions, className = '', compact = false }
       // the same as Left and Right on the rail.
       const target = next === 'agent' ? 'bot' : 'agent'
       pick(target)
-      // Picking a surface may replace the node the key came from, and the switch that
-      // survives is the one in the other surface: look the option up again.
-      globalThis.document?.querySelector(`[data-surface="${target}"]`)?.focus()
+      focusSurface(target)
     },
     'data-surface': next,
   }, compact ? shortLabel(next) : label(next))
