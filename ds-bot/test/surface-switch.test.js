@@ -28,6 +28,7 @@ const walk = node => {
 }
 
 const optionsOf = tree => walk(tree).filter(node => node.props?.role === 'radio')
+const groupOf = tree => walk(tree).find(node => node.props?.role === 'radiogroup')
 
 function draw(props) {
   return SurfaceSwitch({ actions: {}, mode: 'bot', ...props })
@@ -46,11 +47,11 @@ test('the marking follows the mode, so Agent mode points back at the Bots', () =
   assert.deepEqual(options.map(option => option.props['aria-checked']), [true, false])
 })
 
-const groupOf = tree => walk(tree).find(node => node.props?.role === 'radiogroup')
-
-test('the group describes itself, and turns vertical on the rail', () => {
-  assert.equal(groupOf(draw({})).props['aria-orientation'], 'horizontal')
-  assert.equal(groupOf(draw({ className: 'bt-surface-rail' })).props['aria-orientation'], 'vertical')
+test('the group describes itself as one horizontal radio group', () => {
+  const group = groupOf(draw({}))
+  assert.equal(group.props.role, 'radiogroup')
+  assert.equal(group.props['aria-label'], 'Interface')
+  assert.equal(group.props['aria-orientation'], 'horizontal')
 })
 
 // The visible label of an option: the glyph is decoration, so read only the text.
@@ -59,17 +60,14 @@ const textsOf = options => options.map(option => walk(option.props.children)
   .filter(child => typeof child === 'string')
   .join(''))
 
-test('the wide form labels both surfaces, the rail form shows one character', () => {
+test('both surfaces are labelled in words, not by their glyph alone', () => {
   assert.deepEqual(textsOf(optionsOf(draw({}))), ['Sessions', 'Bots'])
-  assert.deepEqual(textsOf(optionsOf(draw({ compact: true }))), ['S', 'B'])
-  // The visible character is not the name a screen reader should read out.
-  assert.deepEqual(optionsOf(draw({ compact: true })).map(option => option.props['aria-label']), ['Sessions', 'Bots'])
+  assert.deepEqual(optionsOf(draw({})).map(option => option.props['aria-label']), ['Sessions', 'Bots'])
 })
 
-test('the wide form leads with a glyph, the rail form has no room for one', () => {
+test('each option leads with its glyph', () => {
   const glyphs = options => options.filter(option => walk(option.props.children).some(node => node.type?.name === 'Glyph'))
   assert.equal(glyphs(optionsOf(draw({}))).length, 2)
-  assert.equal(glyphs(optionsOf(draw({ compact: true }))).length, 0)
 })
 
 test('the thumb is decoration and follows the mode, not the checked option', () => {
@@ -88,52 +86,48 @@ test('picking a surface asks for the other one, and picks the current one for no
   assert.deepEqual(asked, ['agent'])
 })
 
+// The switch only changes what this browser shows, so a window that cannot write to
+// the team can still change surfaces — passing `readOnly` would have locked it in.
 test('a read-only window can still change what it shows', () => {
-  // The read-only lock gates writes to the team; the surface is this browser's view,
-  // so a second DSH holding the data lock must not trap the user in one surface.
   const asked = []
-  const options = optionsOf(draw({ mode: 'bot', actions: { setSurface: mode => asked.push(mode) } }))
-  assert.equal(options.some(option => option.props.disabled), false)
-  options[0].props.onClick()
+  const actions = { setSurface: mode => asked.push(mode) }
+  optionsOf(draw({ mode: 'bot', actions, readOnly: true }))[0].props.onClick()
   assert.deepEqual(asked, ['agent'])
 })
 
 test('arrow keys move to the other surface, other keys are left to the page', () => {
   const asked = []
   const actions = { setSurface: mode => asked.push(mode) }
-  const options = optionsOf(draw({ mode: 'bot', actions }))
+  const option = optionsOf(draw({ mode: 'bot', actions }))[1]
   let prevented = false
-  options[1].props.onKeyDown({ key: 'ArrowLeft', preventDefault: () => { prevented = true } })
+  option.props.onKeyDown({ key: 'ArrowLeft', preventDefault: () => { prevented = true } })
   assert.equal(prevented, true)
   assert.deepEqual(asked, ['agent'])
-  // Up and Down do the same: the rail's form is vertical, and the same control is
-  // drawn in both orientations.
-  options[1].props.onKeyDown({ key: 'ArrowDown', preventDefault: () => {} })
-  assert.deepEqual(asked, ['agent', 'agent'])
-  options[1].props.onKeyDown({ key: 'Enter', preventDefault: () => { prevented = false } })
-  assert.deepEqual(asked, ['agent', 'agent'])
+  asked.length = 0
+  option.props.onKeyDown({ key: 'Tab', preventDefault: () => { prevented = true } })
+  assert.deepEqual(asked, [])
 })
 
-// A surface change re-renders the whole page, so the replacement switch is not in the
-// DOM yet when the key handler returns. Focus must land on it afterwards, or the group
-// is left unfocused and the arrows stop working after one press.
-test('the arrow key hands focus to the switch the new surface draws', async () => {
+// The pick swaps the whole surface, so the button that took the key is unmounted while
+// the handler runs. Without the deferred second pass the focus lands on <body> and the
+// keyboard cannot move the choice again.
+test('the arrow key hands focus to the switch the new surface draws', () => {
   const focused = []
-  let drawnYet = false
-  const spy = setTimeout
-  globalThis.document = {
-    // Nothing to focus until the deferred pass; this is what a real re-render looks
-    // like from the handler's point of view.
-    querySelector: () => (drawnYet ? { focus: () => focused.push('focused') } : null),
-  }
-  // The component defers with the page's timer; run it as soon as it is scheduled.
-  globalThis.setTimeout = run => { drawnYet = true; run() }
+  const nodes = { agent: { focus: () => focused.push('agent') }, bot: { focus: () => focused.push('bot') } }
+  const hadDocument = 'document' in globalThis
+  const hadTimer = 'setTimeout' in globalThis
+  globalThis.document = { querySelector: selector => nodes[selector.match(/data-surface="(\w+)"/)?.[1]] ?? null }
+  // Run the deferred pass at once, so the assertion does not wait on a real timer.
+  globalThis.setTimeout = fn => { fn(); return 0 }
   try {
-    const options = optionsOf(draw({ mode: 'bot', actions: { setSurface: () => {} } }))
-    options[1].props.onKeyDown({ key: 'ArrowLeft', preventDefault: () => {} })
-    assert.deepEqual(focused, ['focused'])
+    const asked = []
+    optionsOf(SurfaceSwitch({ actions: { setSurface: mode => asked.push(mode) }, mode: 'bot' }))[1]
+      .props.onKeyDown({ key: 'ArrowLeft', preventDefault: () => {} })
+    assert.deepEqual(asked, ['agent'])
+    // Once synchronously, once after the shell redraws.
+    assert.deepEqual(focused, ['agent', 'agent'])
   } finally {
-    globalThis.setTimeout = spy
-    delete globalThis.document
+    if (hadDocument) delete globalThis.document
+    if (hadTimer) delete globalThis.setTimeout
   }
 })

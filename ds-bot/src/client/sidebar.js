@@ -570,7 +570,6 @@ export function TeamSidebar(props) {
   const top = wideContent
     ? h('div', { className: 'bt-side-top' },
         h('span', { className: 'bt-brand' }, h(BrandName)),
-        h(SurfaceSwitch, { mode: 'bot', actions, className: 'bt-surface-head' }),
         h(UpdateButton, { useUpdate: props.useUpdate, actions }),
         h('button', { type: 'button', className: 'bt-round', 'aria-label': t('Search'), title: t('Search'), onClick: () => actions.openPalette() }, h(SearchIcon)),
         h('button', { type: 'button', className: 'bt-round', 'aria-label': t('New…'), title: t('New…'), onClick: () => actions.openNewChat('new') }, h(PlusIcon)),
@@ -578,7 +577,6 @@ export function TeamSidebar(props) {
     : h('div', { className: 'bt-rail-top' },
         h(UpdateButton, { useUpdate: props.useUpdate, actions }),
         h('button', { type: 'button', className: 'bt-round bt-side-collapse', 'aria-label': t('Collapse sidebar'), title: t('Collapse sidebar'), onClick: onToggle }, h(SidebarIcon)),
-        h(SurfaceSwitch, { mode: 'bot', actions, className: 'bt-surface-rail', compact: true }),
         main ? h(BotRow, { ...rowProps, bot: main, marked: markedUnread[main.id] === true }) : roster.ready ? null : h('div', { className: 'bt-hint' }, bootFailed ? bootHint() : t('Setting up your Main Bot…')),
         h('span', { className: 'bt-rail-sep', 'aria-hidden': true }))
   // The foot stands in for the shell's hidden footer: the account avatar, and on
@@ -1053,43 +1051,38 @@ export function FooterAccount(props) {
   return h('span', { className: 'bt-foot-account' }, h(AccountLauncher, { ...props, seat: false }))
 }
 
-// The way between the two surfaces, drawn in BOTH of them.
+// The way between the two surfaces, drawn in BOTH of them, as one floating widget.
 //
-// This is the only entry that is guaranteed to be on screen. Agent mode withdraws
-// every Bot surface, so without it there the team is unreachable; and in Bot mode the
-// team column replaces `sidebar.workspaces`, which the host can decline — a shadowed
-// single slot then stays inactive and the shell's own browser keeps the seat, taking
-// the column's top row with it. One entry that renders in either mode is what makes
-// the trip possible from both sides, whichever sidebar happens to be up.
+// It used to be an entry in the sidebar foot and a row in the team column's header. Both
+// seats belong to somebody: the foot's row also holds the account entry, and the team
+// column's top row holds the brand, the update button and the round actions — so the
+// switch moved when a sibling appeared and squeezed whatever shared its row. The frame's
+// floating layer is additive and owned by nobody, which is what a control that must stay
+// put in every surface actually needs.
 //
 // It is never inert. `readOnly` gates writes to the *team* (a second DSH holding the
 // data lock); picking a surface only changes this browser's view, which a read-only
 // window can still do, so passing it would have locked the user in.
-export function BotReturn({ wide, useSurface, useRoster, actions }) {
+export function SurfaceWidget({ useSurface, useRoster, actions }) {
   const mode = useSurface(value => value.mode)
   // One flag, not the whole roster: this entry is registered in every mode, and a
   // subscription to the team would redraw it on every team change.
   const ready = useRoster(value => value.ready === true)
   // No roster is passed: the argument only feeds the desktop app's start animation,
   // and the team is not loaded yet when this entry first draws. Agent mode is the one
-  // that needs the report — it draws no team column, so this entry stands in for it.
+  // that needs the report — it draws no team column, so this widget stands in for it.
   useReportReady(mode === 'agent' && ready)
-  return h('div', { className: wide ? 'bt-return' : 'bt-return bt-return-rail' },
-    h(SurfaceSwitch, { mode, actions, className: wide ? '' : 'bt-surface-rail', compact: !wide }))
+  return h('div', { className: 'bt-surface-widget' }, h(SurfaceSwitch, { mode, actions }))
 }
 
-// The switch is drawn by the shell's footer slot in both surfaces. Its colours come
-// from currentColor and its size is fixed, so all it needs here is its seat.
-//
-// The seat takes its own width and sits at the row's start, on both sides. It used to
-// fill the row and centre its content, which made it move the moment a sibling appeared
-// — and a sibling does appear in Bot mode only (the account entry), so the same switch
-// landed at a different place depending on the surface. Anchoring it to the row's start
-// removes the sibling from the equation: the seat is the same box either way.
+// The widget rides the frame's top band — the strip that holds nothing but the window
+// menu, so it collides with no plugin's own controls. Its height comes from the shell's
+// own published variable: `--dsh-frame-top-clearance` is the title band where a native
+// title bar is drawn, and a plain reserved strip where it is not, so centring on it puts
+// the widget in the same place under either frame.
 export const RETURN_CSS = `
-.bt-return{display:flex;flex:0 0 auto;align-items:center;justify-content:flex-start;min-width:0;padding:6px 8px;box-sizing:border-box}
-.bt-return .bt-surface{flex:none}
-.bt-return-rail{padding:4px 0;justify-content:center}
+.bt-surface-widget{position:absolute;left:50%;top:calc(var(--dsh-frame-top-clearance,48px) / 2);transform:translate(-50%,-50%);pointer-events:auto;display:flex;align-items:center;justify-content:center;-webkit-app-region:no-drag;z-index:1}
+@media (max-width:720px){.bt-surface-widget{display:none}}
 `
 
 export function BrandMark({ size = 24 }) {

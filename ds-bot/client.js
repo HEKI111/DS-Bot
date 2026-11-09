@@ -14698,7 +14698,7 @@ var Glyph = ({ mode }) => (0, import_react33.createElement)("svg", {
   (0, import_react33.createElement)("path", { key: "a", d: "M13.4 8.2c0 2.6-2.4 4.7-5.4 4.7-.6 0-1.2-.1-1.7-.3L3.4 14l.8-2.5c-1-1-1.6-2.2-1.6-3.5 0-2.6 2.4-4.7 5.4-4.7s5.4 2.1 5.4 4.9z" }),
   (0, import_react33.createElement)("path", { key: "b", d: "M6.1 8.3h.01M8 8.3h.01M9.9 8.3h.01", strokeWidth: 1.9 })
 ]);
-function SurfaceSwitch({ mode, actions, className = "", compact: compact2 = false }) {
+function SurfaceSwitch({ mode, actions }) {
   const pick2 = (next) => {
     if (next === mode) return;
     actions.setSurface?.(next);
@@ -14711,8 +14711,6 @@ function SurfaceSwitch({ mode, actions, className = "", compact: compact2 = fals
       role: "radio",
       className: "bt-surface-opt",
       "aria-checked": next === mode,
-      // The rail shows one character and no glyph, so the accessible name is spelled out
-      // here and the title carries it as the hover hint.
       "aria-label": label(next),
       title: t("Switch to {name}", { name: label(next) }),
       // One stop in the tab order for the group; the arrow keys move within it.
@@ -14727,18 +14725,16 @@ function SurfaceSwitch({ mode, actions, className = "", compact: compact2 = fals
       },
       "data-surface": next
     },
-    compact2 ? (0, import_react33.createElement)("span", { className: "bt-surface-ch" }, label(next).slice(0, 1)) : [
-      (0, import_react33.createElement)(Glyph, { key: "ico", mode: next }),
-      (0, import_react33.createElement)("span", { key: "text", className: "bt-surface-txt" }, label(next))
-    ]
+    (0, import_react33.createElement)(Glyph, { key: "ico", mode: next }),
+    (0, import_react33.createElement)("span", { key: "text", className: "bt-surface-txt" }, label(next))
   );
   return (0, import_react33.createElement)(
     "div",
     {
-      className: `bt-surface ${className}`.trim(),
+      className: "bt-surface",
       role: "radiogroup",
       "aria-label": t("Interface"),
-      "aria-orientation": className.includes("bt-surface-rail") ? "vertical" : "horizontal",
+      "aria-orientation": "horizontal",
       "data-mode": mode
     },
     (0, import_react33.createElement)("span", { className: "bt-surface-thumb", "aria-hidden": true }),
@@ -14746,34 +14742,24 @@ function SurfaceSwitch({ mode, actions, className = "", compact: compact2 = fals
   );
 }
 var SURFACE_SWITCH_CSS = `
-/* One fixed width for every horizontal instance, so the control in the team column and
-   the one in the shell's footer are the same size.
-   The accent is the shell's own brand token first: DS Bot's --bt-accent is painted by
-   the shell group, which Agent mode withdraws, so falling back to currentColor keeps
-   the thumb visible in both surfaces instead of turning it grey in one. */
-.bt-surface{position:relative;display:inline-flex;flex:none;align-items:stretch;box-sizing:border-box;width:176px;height:34px;padding:3px;border-radius:999px;background:color-mix(in srgb,currentColor 8%,transparent);box-shadow:inset 0 1px 2px color-mix(in srgb,currentColor 12%,transparent)}
+/* One fixed size wherever the widget is drawn. Every colour is derived from
+   currentColor or the accent: the theme sheet belongs to the shell group, which Agent
+   mode withdraws, so a --bt-* value would vanish on the surface the switch is most
+   needed. */
+.bt-surface{position:relative;display:inline-flex;flex:none;align-items:stretch;box-sizing:border-box;width:158px;height:28px;padding:2px;border-radius:999px;background:color-mix(in srgb,currentColor 7%,transparent);box-shadow:inset 0 1px 2px color-mix(in srgb,currentColor 12%,transparent)}
 /* The thumb carries the accent, so the picked surface reads at a glance in both
-   themes: a soft accent wash, a light top edge, and a shadow that lifts it. The
-   variable is painted on :root by index.js, outside the theme sheet, so Agent mode
-   keeps it too; the two fallbacks only cover the first frame. */
-.bt-surface-thumb{position:absolute;top:3px;left:3px;width:calc(50% - 3px);height:calc(100% - 6px);border-radius:999px;background:linear-gradient(180deg,color-mix(in srgb,var(--bt-surface-accent,var(--bt-accent,currentColor)) 42%,transparent),color-mix(in srgb,var(--bt-surface-accent,var(--bt-accent,currentColor)) 20%,transparent));box-shadow:0 1px 6px color-mix(in srgb,var(--bt-surface-accent,var(--bt-accent,currentColor)) 34%,transparent),inset 0 1px 0 color-mix(in srgb,currentColor 34%,transparent),inset 0 -1px 0 color-mix(in srgb,currentColor 8%,transparent);transition:transform .42s cubic-bezier(.34,1.5,.5,1)}
+   themes. The variable is painted on :root by index.js, outside the theme sheet, so
+   Agent mode keeps it too; the fallbacks only cover the first frame. */
+.bt-surface-thumb{position:absolute;top:2px;left:2px;width:calc(50% - 2px);height:calc(100% - 4px);border-radius:999px;background:linear-gradient(180deg,color-mix(in srgb,var(--bt-surface-accent,var(--bt-accent,currentColor)) 42%,transparent),color-mix(in srgb,var(--bt-surface-accent,var(--bt-accent,currentColor)) 20%,transparent));box-shadow:0 1px 6px color-mix(in srgb,var(--bt-surface-accent,var(--bt-accent,currentColor)) 34%,transparent),inset 0 1px 0 color-mix(in srgb,currentColor 34%,transparent),inset 0 -1px 0 color-mix(in srgb,currentColor 8%,transparent);transition:transform .42s cubic-bezier(.34,1.5,.5,1)}
 .bt-surface[data-mode="bot"] .bt-surface-thumb{transform:translateX(100%)}
-.bt-surface-opt{position:relative;z-index:1;flex:1 1 0;display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:0;padding:0 8px;border:0;border-radius:999px;background:none;color:inherit;opacity:.55;font:inherit;font-size:12.5px;font-weight:500;line-height:1;cursor:pointer;overflow:hidden;white-space:nowrap;transition:opacity .22s ease,transform .22s ease}
+.bt-surface-opt{position:relative;z-index:1;flex:1 1 0;display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:0;padding:0 6px;border:0;border-radius:999px;background:none;color:inherit;opacity:.55;font:inherit;font-size:11.5px;font-weight:500;line-height:1;cursor:pointer;overflow:hidden;white-space:nowrap;transition:opacity .22s ease,transform .22s ease}
 .bt-surface-opt:hover:not([aria-checked="true"]){opacity:.85}
 .bt-surface-opt[aria-checked="true"]{opacity:1;font-weight:600}
 .bt-surface-opt:active{transform:scale(.96)}
 .bt-surface-opt:focus-visible{outline:2px solid var(--bt-surface-accent,var(--bt-accent,currentColor));outline-offset:2px}
-.bt-surface-ico{flex:none;opacity:.9;transition:transform .42s cubic-bezier(.34,1.5,.5,1)}
+.bt-surface-ico{flex:none;width:12px;height:12px;opacity:.9;transition:transform .42s cubic-bezier(.34,1.5,.5,1)}
 .bt-surface-opt[aria-checked="true"] .bt-surface-ico{transform:scale(1.12)}
 .bt-surface-txt{overflow:hidden;text-overflow:ellipsis}
-/* The rail is one icon wide: stack the two options and show one character each. */
-.bt-surface.bt-surface-rail{width:30px;height:62px;flex-direction:column;padding:3px}
-.bt-surface.bt-surface-rail .bt-surface-thumb{width:calc(100% - 6px);height:calc(50% - 3px);transform:translateY(0)}
-.bt-surface.bt-surface-rail[data-mode="bot"] .bt-surface-thumb{transform:translateY(100%)}
-.bt-surface.bt-surface-rail .bt-surface-opt{padding:0;font-size:11px}
-/* In the column's top row the switch shares the row with the round actions,
-   which the brand's own margin-right:auto already holds to the right. */
-.bt-surface.bt-surface-head{flex:0 0 auto}
 @media (prefers-reduced-motion: reduce){
   .bt-surface-thumb,.bt-surface-opt,.bt-surface-ico{transition:none}
 }
@@ -15349,7 +15335,6 @@ function TeamSidebar(props) {
     "div",
     { className: "bt-side-top" },
     (0, import_react34.createElement)("span", { className: "bt-brand" }, (0, import_react34.createElement)(BrandName)),
-    (0, import_react34.createElement)(SurfaceSwitch, { mode: "bot", actions, className: "bt-surface-head" }),
     (0, import_react34.createElement)(UpdateButton, { useUpdate: props.useUpdate, actions }),
     (0, import_react34.createElement)("button", { type: "button", className: "bt-round", "aria-label": t("Search"), title: t("Search"), onClick: () => actions.openPalette() }, (0, import_react34.createElement)(SearchIcon)),
     (0, import_react34.createElement)("button", { type: "button", className: "bt-round", "aria-label": t("New…"), title: t("New…"), onClick: () => actions.openNewChat("new") }, (0, import_react34.createElement)(PlusIcon)),
@@ -15359,7 +15344,6 @@ function TeamSidebar(props) {
     { className: "bt-rail-top" },
     (0, import_react34.createElement)(UpdateButton, { useUpdate: props.useUpdate, actions }),
     (0, import_react34.createElement)("button", { type: "button", className: "bt-round bt-side-collapse", "aria-label": t("Collapse sidebar"), title: t("Collapse sidebar"), onClick: onToggle }, (0, import_react34.createElement)(SidebarIcon)),
-    (0, import_react34.createElement)(SurfaceSwitch, { mode: "bot", actions, className: "bt-surface-rail", compact: true }),
     main ? (0, import_react34.createElement)(BotRow, { ...rowProps, bot: main, marked: markedUnread[main.id] === true }) : roster.ready ? null : (0, import_react34.createElement)("div", { className: "bt-hint" }, bootFailed ? bootHint() : t("Setting up your Main Bot…")),
     (0, import_react34.createElement)("span", { className: "bt-rail-sep", "aria-hidden": true })
   );
@@ -15856,20 +15840,15 @@ function FooterAccount(props) {
   if (seated) return null;
   return (0, import_react34.createElement)("span", { className: "bt-foot-account" }, (0, import_react34.createElement)(AccountLauncher, { ...props, seat: false }));
 }
-function BotReturn({ wide, useSurface, useRoster, actions }) {
+function SurfaceWidget({ useSurface, useRoster, actions }) {
   const mode = useSurface((value) => value.mode);
   const ready = useRoster((value) => value.ready === true);
   useReportReady(mode === "agent" && ready);
-  return (0, import_react34.createElement)(
-    "div",
-    { className: wide ? "bt-return" : "bt-return bt-return-rail" },
-    (0, import_react34.createElement)(SurfaceSwitch, { mode, actions, className: wide ? "" : "bt-surface-rail", compact: !wide })
-  );
+  return (0, import_react34.createElement)("div", { className: "bt-surface-widget" }, (0, import_react34.createElement)(SurfaceSwitch, { mode, actions }));
 }
 var RETURN_CSS = `
-.bt-return{display:flex;flex:0 0 auto;align-items:center;justify-content:flex-start;min-width:0;padding:6px 8px;box-sizing:border-box}
-.bt-return .bt-surface{flex:none}
-.bt-return-rail{padding:4px 0;justify-content:center}
+.bt-surface-widget{position:absolute;left:50%;top:calc(var(--dsh-frame-top-clearance,48px) / 2);transform:translate(-50%,-50%);pointer-events:auto;display:flex;align-items:center;justify-content:center;-webkit-app-region:no-drag;z-index:1}
+@media (max-width:720px){.bt-surface-widget{display:none}}
 `;
 function BrandMark({ size = 24 }) {
   return (0, import_react34.createElement)("span", { className: "bt-brand-whale" }, (0, import_react34.createElement)(BotMark, { look: MAIN_LOOK, size }));
@@ -28133,7 +28112,7 @@ function apply(ctx) {
   }, "ds-bot: surface switch accent");
   ctx.effect(() => installCompiledStyles(RETURN_CSS, "return"), "ds-bot: return styles");
   ctx.effect(() => installCompiledStyles(COMPUTER_CSS, "computer"), "ds-bot: computer styles");
-  shadow("sidebar.footer.action", { id: "bot-return", order: -300, inject: face }, BotReturn);
+  shadow("shell.overlay", { id: "bot-surface", order: 30, inject: face }, SurfaceWidget);
   ctx.effect(() => {
     let previous;
     const sync = () => {

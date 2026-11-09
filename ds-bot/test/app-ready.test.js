@@ -12,7 +12,7 @@ import { build } from 'esbuild'
 const PLUGIN = dirname(dirname(fileURLToPath(import.meta.url)))
 const { outputFiles } = await build({
   stdin: {
-    contents: "export { BotReturn, TeamSidebar } from './src/client/sidebar.js'\nexport { clientErrors } from './src/client/diagnostics.js'",
+    contents: "export { SurfaceWidget, TeamSidebar } from './src/client/sidebar.js'\nexport { clientErrors } from './src/client/diagnostics.js'",
     resolveDir: PLUGIN,
   },
   bundle: true, format: 'cjs', platform: 'browser', write: false, logLevel: 'silent',
@@ -139,12 +139,12 @@ test('a Main Bot in another look or a photo reports no place', async () => {
   }
 })
 
-test('in Agent mode the return button reports what the team sidebar would', async () => {
+test('in Agent mode the surface widget reports what the team sidebar would', async () => {
   const { calls, app } = readyCalls()
-  const { BotReturn, TeamSidebar } = page(app)
-  const button = mount(BotReturn)
-  // The switch stays on screen in Bot mode too: the team column is a shadowed slot the
-  // host may decline, and then this entry is the only way across.
+  const { SurfaceWidget, TeamSidebar } = page(app)
+  const button = mount(SurfaceWidget)
+  // The widget stays on screen in Bot mode too: it rides the frame's floating layer,
+  // which belongs to no column, so it is drawn in every surface.
   assert.notEqual(button(returnProps('bot', TEAM)), null)
   button(returnProps('agent', BEFORE_STATE))
   await setImmediate()
