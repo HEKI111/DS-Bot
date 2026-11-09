@@ -1052,38 +1052,45 @@ export function FooterAccount(props) {
   return h('span', { className: 'bt-foot-account' }, h(AccountLauncher, { ...props, seat: false }))
 }
 
-// The only entry registered in every mode: in Agent mode the whole Bot surface is
-// withdrawn, and this is the way back. It draws the same two-option switch the team
-// column shows, so Agent mode offers the choice in the same shape instead of a lone
-// "DS Bot" button whose meaning only the team's own users could guess.
+// The way between the two surfaces, drawn in BOTH of them.
 //
-// The switch is never inert here. `readOnly` gates writes to the *team* (a second DSH
-// holding the data lock); picking a surface only changes this browser's view, which a
-// read-only window can still do, so passing it would have locked the user in.
+// This is the only entry that is guaranteed to be on screen. Agent mode withdraws
+// every Bot surface, so without it there the team is unreachable; and in Bot mode the
+// team column replaces `sidebar.workspaces`, which the host can decline — a shadowed
+// single slot then stays inactive and the shell's own browser keeps the seat, taking
+// the column's top row with it. One entry that renders in either mode is what makes
+// the trip possible from both sides, whichever sidebar happens to be up.
+//
+// It is never inert. `readOnly` gates writes to the *team* (a second DSH holding the
+// data lock); picking a surface only changes this browser's view, which a read-only
+// window can still do, so passing it would have locked the user in.
 export function BotReturn({ wide, useSurface, useRoster, actions }) {
   const mode = useSurface(value => value.mode)
   // One flag, not the whole roster: this entry is registered in every mode, and a
   // subscription to the team would redraw it on every team change.
   const ready = useRoster(value => value.ready === true)
-  // Agent mode draws no team sidebar; there this control is the team interface.
   // No roster is passed: the argument only feeds the desktop app's start animation,
-  // and the team is not loaded yet when this entry first draws.
+  // and the team is not loaded yet when this entry first draws. Agent mode is the one
+  // that needs the report — it draws no team column, so this entry stands in for it.
   useReportReady(mode === 'agent' && ready)
-  if (mode !== 'agent') return null
-  return h('div', { className: 'bt-return' },
-    h(SurfaceSwitch, { mode: 'agent', actions, className: wide ? '' : 'bt-surface-rail', compact: !wide }))
+  return h('div', { className: wide ? 'bt-return' : 'bt-return bt-return-rail' },
+    h(SurfaceSwitch, { mode, actions, className: wide ? '' : 'bt-surface-rail', compact: !wide }))
 }
 
 // Agent mode has none of the shell-group styles, so the switch carries its own. The
 // theme tokens are painted by the shell group, which is withdrawn there, so every
-// value here comes from the surrounding ink instead of a --bt-* variable.
+// value here comes from the surrounding ink instead of a --bt-* variable — the same
+// rule then holds in Bot mode, where the shell keeps its own ink as well.
 export const RETURN_CSS = `
 .bt-return{display:flex;align-items:center;min-width:0;padding:0 8px}
 .bt-return .bt-surface{flex:1 1 auto;min-width:0;background:color-mix(in srgb,currentColor 12%,transparent)}
 .bt-return .bt-surface-opt{color:inherit;opacity:.62}
-.bt-return .bt-surface-opt:hover:not([aria-checked="true"]):not(:disabled){color:inherit;opacity:.85}
+.bt-return .bt-surface-opt:hover:not([aria-checked="true"]){color:inherit;opacity:.85}
 .bt-return .bt-surface-opt[aria-checked="true"]{background:color-mix(in srgb,currentColor 16%,transparent);color:inherit;opacity:1;box-shadow:none}
 .bt-return .bt-surface-opt:focus-visible{outline-color:currentColor}
+/* The shell's rail is 56px: the switch stacks and shows one character per surface. */
+.bt-return.bt-return-rail{padding:0;justify-content:center}
+.bt-return.bt-return-rail .bt-surface{flex:0 0 auto}
 `
 
 export function BrandMark({ size = 24 }) {

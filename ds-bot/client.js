@@ -15771,20 +15771,22 @@ function BotReturn({ wide, useSurface, useRoster, actions }) {
   const mode = useSurface((value) => value.mode);
   const ready = useRoster((value) => value.ready === true);
   useReportReady(mode === "agent" && ready);
-  if (mode !== "agent") return null;
   return (0, import_react34.createElement)(
     "div",
-    { className: "bt-return" },
-    (0, import_react34.createElement)(SurfaceSwitch, { mode: "agent", actions, className: wide ? "" : "bt-surface-rail", compact: !wide })
+    { className: wide ? "bt-return" : "bt-return bt-return-rail" },
+    (0, import_react34.createElement)(SurfaceSwitch, { mode, actions, className: wide ? "" : "bt-surface-rail", compact: !wide })
   );
 }
 var RETURN_CSS = `
 .bt-return{display:flex;align-items:center;min-width:0;padding:0 8px}
 .bt-return .bt-surface{flex:1 1 auto;min-width:0;background:color-mix(in srgb,currentColor 12%,transparent)}
 .bt-return .bt-surface-opt{color:inherit;opacity:.62}
-.bt-return .bt-surface-opt:hover:not([aria-checked="true"]):not(:disabled){color:inherit;opacity:.85}
+.bt-return .bt-surface-opt:hover:not([aria-checked="true"]){color:inherit;opacity:.85}
 .bt-return .bt-surface-opt[aria-checked="true"]{background:color-mix(in srgb,currentColor 16%,transparent);color:inherit;opacity:1;box-shadow:none}
 .bt-return .bt-surface-opt:focus-visible{outline-color:currentColor}
+/* The shell's rail is 56px: the switch stacks and shows one character per surface. */
+.bt-return.bt-return-rail{padding:0;justify-content:center}
+.bt-return.bt-return-rail .bt-surface{flex:0 0 auto}
 `;
 function BrandMark({ size = 24 }) {
   return (0, import_react34.createElement)("span", { className: "bt-brand-whale" }, (0, import_react34.createElement)(BotMark, { look: MAIN_LOOK, size }));

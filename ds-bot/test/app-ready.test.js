@@ -143,7 +143,9 @@ test('in Agent mode the return button reports what the team sidebar would', asyn
   const { calls, app } = readyCalls()
   const { BotReturn, TeamSidebar } = page(app)
   const button = mount(BotReturn)
-  assert.equal(button(returnProps('bot', TEAM)), null)
+  // The switch stays on screen in Bot mode too: the team column is a shadowed slot the
+  // host may decline, and then this entry is the only way across.
+  assert.notEqual(button(returnProps('bot', TEAM)), null)
   button(returnProps('agent', BEFORE_STATE))
   await setImmediate()
   assert.deepEqual(calls, [])
