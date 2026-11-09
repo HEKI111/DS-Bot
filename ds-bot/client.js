@@ -15838,9 +15838,9 @@ function BotReturn({ wide, useSurface, useRoster, actions }) {
   );
 }
 var RETURN_CSS = `
-.bt-return{display:flex;align-items:center;justify-content:center;min-width:0;padding:6px 8px}
+.bt-return{display:flex;flex:0 0 auto;align-items:center;justify-content:flex-start;min-width:0;padding:6px 8px;box-sizing:border-box}
 .bt-return .bt-surface{flex:none}
-.bt-return-rail{padding:4px 0}
+.bt-return-rail{padding:4px 0;justify-content:center}
 `;
 function BrandMark({ size = 24 }) {
   return (0, import_react34.createElement)("span", { className: "bt-brand-whale" }, (0, import_react34.createElement)(BotMark, { look: MAIN_LOOK, size }));

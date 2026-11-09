@@ -1078,12 +1078,17 @@ export function BotReturn({ wide, useSurface, useRoster, actions }) {
 }
 
 // The switch is drawn by the shell's footer slot in both surfaces. Its colours come
-// from currentColor and its size is fixed, so all it needs here is its seat: a row in
-// the expanded column, a centred column on the rail.
+// from currentColor and its size is fixed, so all it needs here is its seat.
+//
+// The seat takes its own width and sits at the row's start, on both sides. It used to
+// fill the row and centre its content, which made it move the moment a sibling appeared
+// — and a sibling does appear in Bot mode only (the account entry), so the same switch
+// landed at a different place depending on the surface. Anchoring it to the row's start
+// removes the sibling from the equation: the seat is the same box either way.
 export const RETURN_CSS = `
-.bt-return{display:flex;align-items:center;justify-content:center;min-width:0;padding:6px 8px}
+.bt-return{display:flex;flex:0 0 auto;align-items:center;justify-content:flex-start;min-width:0;padding:6px 8px;box-sizing:border-box}
 .bt-return .bt-surface{flex:none}
-.bt-return-rail{padding:4px 0}
+.bt-return-rail{padding:4px 0;justify-content:center}
 `
 
 export function BrandMark({ size = 24 }) {
