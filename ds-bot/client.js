@@ -14536,6 +14536,35 @@ function showsDshRow(dsh, app) {
   return dsh.kind === "app" && APP_OFFER.has(app?.phase) && sameVersion(app.version, dsh.verified);
 }
 
+// src/client/css.js
+var SAFE = /[A-Za-z0-9_-]/;
+function cssEscape(value) {
+  const text = String(value);
+  let out = "";
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i];
+    const code = text.charCodeAt(i);
+    if (code === 0) {
+      out += "�";
+      continue;
+    }
+    if (i === 0 && code >= 48 && code <= 57 || i === 1 && code >= 48 && code <= 57 && text[0] === "-") {
+      out += `\\${code.toString(16)} `;
+      continue;
+    }
+    if (code < 32 || code === 127) {
+      out += `\\${code.toString(16)} `;
+      continue;
+    }
+    if (i === 0 && text.length === 1 && ch === "-") {
+      out += "\\-";
+      continue;
+    }
+    out += SAFE.test(ch) ? ch : `\\${ch}`;
+  }
+  return out;
+}
+
 // src/client/frame-watch.js
 var sidebarTrackWidth = () => typeof document === "undefined" ? null : document.querySelector('[class*="_sidebarCol"]')?.getBoundingClientRect().width ?? null;
 var dshCollapsed = () => {
@@ -14549,7 +14578,7 @@ var roomRule = () => {
   const live = room.rule?.parentStyleSheet?.ownerNode?.isConnected;
   if (live && room.selector) return room.rule;
   const column = document.querySelector('[class*="_centerCol"]');
-  const selector = column ? [...column.classList].filter((name) => name.includes("_centerCol")).map((name) => `.${CSS.escape(name)}`).join(",") : "";
+  const selector = column ? [...column.classList].filter((name) => name.includes("_centerCol")).map((name) => `.${cssEscape(name)}`).join(",") : "";
   if (live && !selector) return room.rule;
   const declarations2 = room.rule?.style.cssText ?? "";
   room.rule?.parentStyleSheet?.ownerNode?.remove();
@@ -15737,7 +15766,7 @@ function useReportReady(drawn, roster) {
 }
 function mainMarkOf(id) {
   if (typeof document === "undefined") return null;
-  const key = typeof CSS !== "undefined" && CSS.escape ? CSS.escape(id) : id;
+  const key = cssEscape(id);
   return document.querySelector(`.bt-side [data-bot-id="${key}"] .bt-mark`);
 }
 function mainAvatarPlace(roster) {

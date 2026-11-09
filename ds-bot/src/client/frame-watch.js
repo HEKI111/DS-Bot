@@ -2,6 +2,7 @@
 // sidebar track, and the one CSS rule that writes the conversation column's
 // margins (our own column on the left, the Bot panel on the right).
 import { installStyles } from './styles.js'
+import { cssEscape } from './css.js'
 
 export const sidebarTrackWidth = () =>
   typeof document === 'undefined' ? null : document.querySelector('[class*="_sidebarCol"]')?.getBoundingClientRect().width ?? null
@@ -28,7 +29,7 @@ const roomRule = () => {
   const live = room.rule?.parentStyleSheet?.ownerNode?.isConnected
   if (live && room.selector) return room.rule
   const column = document.querySelector('[class*="_centerCol"]')
-  const selector = column ? [...column.classList].filter(name => name.includes('_centerCol')).map(name => `.${CSS.escape(name)}`).join(',') : ''
+  const selector = column ? [...column.classList].filter(name => name.includes('_centerCol')).map(name => `.${cssEscape(name)}`).join(',') : ''
   if (live && !selector) return room.rule
   const declarations = room.rule?.style.cssText ?? ''
   room.rule?.parentStyleSheet?.ownerNode?.remove()

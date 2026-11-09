@@ -16,6 +16,7 @@ import { showsDshRow } from './dsh-offer.js'
 import { quietly } from './diagnostics.js'
 import { frameLayout, dragColumn, RAIL_WIDTH, FALLBACK_SIDEBAR_WIDTH, userSidebarToggle } from './frame-layout.js'
 import { chatRoom, dshCollapsed } from './frame-watch.js'
+import { cssEscape } from './css.js'
 import { SurfaceSwitch } from './surface-switch.js'
 
 // -------------------------------------------------------------------------
@@ -934,7 +935,7 @@ function useReportReady(drawn, roster) {
 
 function mainMarkOf(id) {
   if (typeof document === 'undefined') return null
-  const key = typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(id) : id
+  const key = cssEscape(id)
   return document.querySelector(`.bt-side [data-bot-id="${key}"] .bt-mark`)
 }
 
