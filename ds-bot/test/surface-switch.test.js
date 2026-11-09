@@ -53,12 +53,30 @@ test('the group describes itself, and turns vertical on the rail', () => {
   assert.equal(groupOf(draw({ className: 'bt-surface-rail' })).props['aria-orientation'], 'vertical')
 })
 
-test('the rail form shows one character but keeps the full name for assistive tech', () => {
-  const text = options => options.map(option => option.props.children.join(''))
-  assert.deepEqual(text(optionsOf(draw({}))), ['Sessions', 'Bots'])
-  assert.deepEqual(text(optionsOf(draw({ compact: true }))), ['S', 'B'])
+// The visible label of an option: the glyph is decoration, so read only the text.
+const textsOf = options => options.map(option => walk(option.props.children)
+  .flatMap(node => (typeof node === 'string' ? [] : node.props?.children ?? []))
+  .filter(child => typeof child === 'string')
+  .join(''))
+
+test('the wide form labels both surfaces, the rail form shows one character', () => {
+  assert.deepEqual(textsOf(optionsOf(draw({}))), ['Sessions', 'Bots'])
+  assert.deepEqual(textsOf(optionsOf(draw({ compact: true }))), ['S', 'B'])
   // The visible character is not the name a screen reader should read out.
   assert.deepEqual(optionsOf(draw({ compact: true })).map(option => option.props['aria-label']), ['Sessions', 'Bots'])
+})
+
+test('the wide form leads with a glyph, the rail form has no room for one', () => {
+  const glyphs = options => options.filter(option => walk(option.props.children).some(node => node.type?.name === 'Glyph'))
+  assert.equal(glyphs(optionsOf(draw({}))).length, 2)
+  assert.equal(glyphs(optionsOf(draw({ compact: true }))).length, 0)
+})
+
+test('the thumb is decoration and follows the mode, not the checked option', () => {
+  const thumb = tree => walk(tree).find(node => node.props?.className === 'bt-surface-thumb')
+  assert.equal(thumb(draw({ mode: 'agent' })).props['aria-hidden'], true)
+  // Both options agree with the group, so CSS can move the thumb from data-mode alone.
+  assert.equal(groupOf(draw({ mode: 'bot' })).props['data-mode'], 'bot')
 })
 
 test('picking a surface asks for the other one, and picks the current one for nothing', () => {

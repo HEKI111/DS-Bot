@@ -117,6 +117,17 @@ export function registerTheme(id, theme) {
 }
 export const allThemes = () => ({ ...THEMES, ...customThemes })
 
+// The accent a theme paints with, for chrome that must show its colour in BOTH
+// surfaces. The theme sheet is part of the shell group, which Agent mode withdraws, so
+// a component that only read --bt-accent would fall back to grey there. `prefs` is the
+// team's saved preference: a custom accent wins, then the chosen theme's own.
+export function accentOf(prefs) {
+  const themes = allThemes()
+  const theme = themes[prefs?.theme] ?? THEMES.deepseek
+  const picked = typeof prefs?.accent === 'string' && /^#[0-9a-f]{6}$/i.test(prefs.accent) ? prefs.accent : undefined
+  return picked ?? theme.light.accent
+}
+
 // How chat messages are drawn; a value the plugin does not know reads as the default.
 // A width is a percent of the column: the bubbles' in either layout, the text's in the
 // flat one.

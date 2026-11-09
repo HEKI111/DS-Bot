@@ -3,7 +3,7 @@ import { isHex, inkText, paintCss } from './inks.js'
 import { DEFAULT_MASK, SHAPES, markupCache, maskOf } from './characters.js'
 import { createSource, EMPTY_ROSTER, indexRoster, isAgentSession } from './sources.js'
 import { teamActions } from './team-actions.js'
-import { themeCss, shellTokens, registry, registerShape, registerTheme, allThemes, layoutOf, widthOf, flatWidthOf } from './themes.js'
+import { themeCss, shellTokens, registry, registerShape, registerTheme, allThemes, accentOf, layoutOf, widthOf, flatWidthOf } from './themes.js'
 import { MENTION_ORIGIN, currentPart } from './text.js'
 import { SHELL_CSS, CONVERSATION_CSS, installStyles, installCompiledStyles } from './styles.js'
 import { lookOf } from './mark.js'
@@ -1115,6 +1115,20 @@ export function apply(ctx) {
   // The surface switch renders in both modes, so it goes on with neither group.
   // RETURN_CSS comes after it: its Agent-mode token overrides must win.
   ctx.effect(() => installCompiledStyles(SURFACE_SWITCH_CSS, 'surface-switch'), 'ds-bot: surface switch styles')
+  // The switch's accent is painted here, on :root, not by the theme sheet: that sheet
+  // belongs to the shell group, and Agent mode withdraws it, which would leave the
+  // switch grey on the surface it is most needed. Reading the preference directly
+  // keeps the colour in both modes.
+  ctx.effect(() => {
+    const style = installStyles('', 'surface-switch-accent')
+    const paint = () => {
+      const snapshot = roster.getSnapshot()
+      const prefs = snapshot.ready ? snapshot.prefs ?? {} : savedPrefs
+      style.textContent = `:root{--bt-surface-accent:${accentOf(prefs)}}`
+    }
+    paint()
+    return roster.subscribe(paint)
+  }, 'ds-bot: surface switch accent')
   ctx.effect(() => installCompiledStyles(RETURN_CSS, 'return'), 'ds-bot: return styles')
   ctx.effect(() => installCompiledStyles(COMPUTER_CSS, 'computer'), 'ds-bot: computer styles')
   shadow('sidebar.footer.action', { id: 'bot-return', order: -300, inject: face }, BotReturn)
